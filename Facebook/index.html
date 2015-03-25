@@ -148,7 +148,7 @@ FB.logout(function(response) {
 		<fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
 		</fb:login-button>
 
-		<fb:logout-button scope="public_profile,email" onlogin="checkLoginState();">
+		<fb:logout-button scope="public_profile,email" onlogin="FB.logout()">
 		</fb:logout-button>
 
 		<div id="status">
