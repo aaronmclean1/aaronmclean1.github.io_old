@@ -133,6 +133,10 @@
 			fjs.parentNode.insertBefore(js, fjs);
 		}(document, 'script', 'facebook-jssdk'));
 
+FB.logout(function(response) {
+       alert('logged out')
+    });
+
 	</script>
 
 		<!--
@@ -143,6 +147,9 @@
 
 		<fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
 		</fb:login-button>
+
+		<fb:logout-button scope="public_profile,email" onlogin="checkLoginState();">
+		</fb:logout-button>
 
 		<div id="status">
 		</div>
