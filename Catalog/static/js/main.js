@@ -41,6 +41,8 @@ function postLogin()
 			var uid = response.authResponse.userID;
 			var accessToken = response.authResponse.accessToken;
 			
+			console.log(response)
+			
 			$('#addACategory').show();
 			$('#addAGearItem').show();			
 			
@@ -48,7 +50,7 @@ function postLogin()
 			{				
 				$('#status').html('Thanks for logging in, ' + response.name + '!')
 				// start here on Thurs
-				addUser(uid, response.name);
+				addUser(uid, response.name, accessToken);
 			});	
 			
 			
@@ -71,13 +73,13 @@ function postLogin()
 	});
 }
 
-function addUser(fbid, name)
+function addUser(fbid, name, accessToken)
 {
-	var newUsers = [id, name];
+	
 	//check to see if the user is in the DB. If not, add them
 	$.ajax({
 		type: 'GET',
-		url: '/catalog/addUser/' + fbid + '/' + name + '/',		
+		url: '/catalog/addUser/' + fbid + '/' + name + '/' + accessToken + '/',		
 		success: function(data)
 		{
 			console.log(data)

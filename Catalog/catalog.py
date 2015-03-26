@@ -7,6 +7,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from catlogDbSetup import Base, Category, GearItem, FbUsers
 
+import json, requests
+
 engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind = engine
 
@@ -14,24 +16,38 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 #This is the primary page
-@app.route('/catalog/addUser/<int:fbid>/<name>/')
-def addUser(fbid,name):
+@app.route('/catalog/addUser/<int:fbid>/<name>/<accessToken>/')
+def addUser(fbid,name,accessToken):	
+
+	#This code is used to prove that the client side authenication codes are genuine	
+	url = 'https://graph.facebook.com/debug_token?'
+
+	params = dict(
+		input_token='830332383679546%7C22ed25639950578f442f85ef245c1026',
+		access_token= accessToken
+	)
+	resp = requests.get(url=url, params=params)
+	data = json.loads(resp.text)
 	
-	#see if user exists. If not add user
-	users = session.query(FbUsers).filter_by(fbid = fbid).all()
-	if users :
-		return jsonify(user=[i.serialize for i in users])
-	else:	
-		#add user
-		newUser = FbUsers(name = name, fbid = fbid)	
+	#If Facebook agrees that the codes match then save the user to the database.		
+	if data["data"]["is_valid"] == True:
+		#see if user exists. If not add user
+		users = session.query(FbUsers).filter_by(fbid = fbid).all()
+		if users :
+			return jsonify(user=[i.serialize for i in users])
+		else:	
+			#add user
+			newUser = FbUsers(name = name, fbid = fbid)	
 
-		#add to the DB
-		session.add(newUser)
+			#add to the DB
+			session.add(newUser)
 
-		#commit to the db
-		session.commit()
-		
-		return 'new user created'
+			#commit to the db
+			session.commit()
+
+			return 'new user created'
+	else:
+		return "Error: Facebook authentication string is not valid."
 
 #This is the primary page
 @app.route('/catalog/')
