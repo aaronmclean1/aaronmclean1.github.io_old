@@ -41,6 +41,10 @@
 			  console.log(response);
 			});
 
+			FB.api('/me', {fields: 'first_name'}, function(response) {
+			  console.log(response);
+			});
+
         }
 
 
