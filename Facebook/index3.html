@@ -23,14 +23,15 @@
             FB.login(function(response) {
 
             // handle the response
-            console.log("Response goes here!");
+            console.log(response);
 
             }, {scope: 'public_profile,email'});
         }
 
         function logout() {
             FB.logout(function(response) {
-              // user is now logged out
+             console.log(response);
+
             });
         }
 
