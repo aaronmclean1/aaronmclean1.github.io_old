@@ -40,6 +40,9 @@
 
         console.log(status);
 
+function isLoggedIn()
+{
+
 FB.getLoginStatus(function(response) {
   if (response.status === 'connected') {
     // the user is logged in and has authenticated your
@@ -59,6 +62,8 @@ FB.getLoginStatus(function(response) {
   }
  });
 
+ }
+
         </script>
 
         <button onclick="javascript:login();">Login Facebook</button>
@@ -66,3 +71,7 @@ FB.getLoginStatus(function(response) {
         <br>
 
         <button onclick="javascript:logout();">Logout from Facebook</button>
+
+        <br>
+
+        <button onclick="javascript:isLoggedIn();">is logged in?</button>
