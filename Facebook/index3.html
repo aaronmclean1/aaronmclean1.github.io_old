@@ -51,6 +51,7 @@
 
         }
 
+        function getstatus() {
 FB.getLoginStatus(function(response) {
   if (response.status === 'connected') {
     // the user is logged in and has authenticated your
@@ -71,6 +72,11 @@ FB.getLoginStatus(function(response) {
   }
  });
 
+        }
+
+
+
+
 
 
         var status = FB.getLoginStatus();
@@ -90,3 +96,8 @@ FB.getLoginStatus(function(response) {
         <br>
 
         <button onclick="javascript:getName();">get name</button>
+
+
+        <br>
+
+        <button onclick="javascript:getstatus();">get status</button>
