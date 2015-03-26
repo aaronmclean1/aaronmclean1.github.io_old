@@ -36,6 +36,15 @@
             });
         }
 
+        function getName() {
+			FB.api('/me', {fields: 'last_name'}, function(response) {
+			  console.log(response);
+			});
+
+        }
+
+
+
         var status = FB.getLoginStatus();
 
         console.log(status);
@@ -47,3 +56,7 @@
         <br>
 
         <button onclick="javascript:logout();">Logout from Facebook</button>
+
+        <br>
+
+        <button onclick="javascript:getName();">get name</button>
