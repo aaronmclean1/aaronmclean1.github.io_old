@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>
+			Catalog
+		</title>
+
+		<!-- Bootstrap core CSS -->
+		<link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+		<!-- Documentation extras -->
+		<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/main.css') }}">
+	</head>
+	<body>
+		<div id="fb-root"></div>
+
+		<!-- Docs page layout -->
+		<div class="bs-docs-header">
+			<div class="container">
+				<span>
+					Catalog App
+				</span>
+				<span class="nav navbar-nav navbar-right">
+					<div
+						class="fb-login-button"
+						data-max-rows="1"
+						data-size="medium"
+						data-show-faces="false"
+						data-auto-logout-link="true"
+						onlogin="postLogin"
+						scope="public_profile,email"
+					>
+					</div>
+					<div id="status" style="font-size:12px">
+
+					</div>
+
+				</span>
+			</div>
+		</div>
+		<div class="container bs-docs-container">
+			<div class="row highlight">
+				<div class="col-md-3" role="main" style="border-right: thin solid #dddddd;">
+
+					<!-- Add a new category -->
+					<div>
+						<a
+							href = "#"
+							id="addACategory"
+							onclick="addNewCategory(); return false"
+							style="color: #E34D07; font-weight:600; display:none"
+						>
+							Add a Category
+						</a>
+					</div>
+
+					<!-- Display a list of categories when the page loads -->
+					<div id="categoryDiv">
+						<h3 style="margin: 5px 0px 5px 0px; font-weight:600;  ">Categories</h3>
+						<ul class="list-unstyled">
+							{% for category in categories %}
+							<li>
+								<a
+									href="#"
+									onclick='populateGearDiv("{{category.id}}","{{category.name}}"); return false'
+									style="color: #E34D07; font-weight:600"
+								>
+									{{category.name}}
+								</a>
+							</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+				<div class="col-md-9" >
+					<!-- Add a new gear item -->
+					<div>
+						<a
+							href = "#"
+							id="addAGearItem"
+							onclick="addNewGearModal(); return false"
+							style="color: #E34D07; font-weight:600; display:none"
+						>
+							Add a Gear Item
+						</a>
+					</div>
+
+					<!-- Our Gear data will be displayed here -->
+					<div id="gearDiv">
+						<h3 style="margin: 5px 0px 5px 0px; font-weight:600">Latest Items</h3>
+
+						<!-- Display a list of the latest gear items when the page loads -->
+						<ul class="list-unstyled">
+							{% for key in latestItems %}
+							<li>
+								<a
+									href="#"
+									onclick='populateGearModal("{{ key[3] }}","{{ key[0] }}","{{ key[1] }}","{{ key[2] }}"); return false'
+									style="color: #E34D07; font-weight:600"
+								>
+									{{ key[1] }}
+									<span style='color:#dddddd'>
+										({{ key[2] }})
+									</span>
+								</a>
+							</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- modal content -->
+		<div id="basic-modal-content">
+		</div>
+
+		<!-- jquery -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+		<!-- bootstrap js -->
+		<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+		<!-- simple modal http://www.ericmmartin.com/projects/simplemodal/ -->
+		<script src="https://simplemodal.googlecode.com/files/jquery.simplemodal-1.4.4.js"></script>
+
+		<!-- mozilla Persona -->
+		<script src="https://login.persona.org/include.js"></script>
+
+		<!-- our main js file -->
+		<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+	</body>
+</html>
