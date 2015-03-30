@@ -25,7 +25,10 @@
 					Catalog App
 				</span>
 				<span class="nav navbar-nav navbar-right">
-					<div
+					<span id="status" style="font-size:12px">
+
+					</span>
+					<span
 						class="fb-login-button"
 						data-max-rows="1"
 						data-size="medium"
@@ -34,10 +37,8 @@
 						onlogin="postLogin"
 						scope="public_profile,email"
 					>
-					</div>
-					<div id="status" style="font-size:12px">
+					</span>
 
-					</div>
 
 				</span>
 			</div>
@@ -114,6 +115,10 @@
 				</div>
 			</div>
 		</div>
+
+		<input type="hidden" id="accessToken">
+		<input type="hidden" id="facebookId">
+
 		<!-- modal content -->
 		<div id="basic-modal-content">
 		</div>

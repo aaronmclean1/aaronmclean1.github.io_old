@@ -47,7 +47,7 @@ class FbUsers(Base):
     __tablename__ = 'fbusers'
    
     id = Column(Integer, primary_key=True)
-    fbid = Column(Integer, nullable=False)
+    facebookId = Column(Integer, nullable=False)
     name = Column(String(250), nullable=False)
 
     @property
@@ -56,8 +56,24 @@ class FbUsers(Base):
        return {
            'name'         : self.name,
            'id'         : self.id,
-           'fbid'         : self.fbid
-       }       
+           'facebookId'         : self.facebookId
+       }    
+       
+class ApplicationParameters(Base):
+    __tablename__ = 'applicationparameters'
+   
+    id = Column(Integer, primary_key=True)
+    appParam = Column(String(250), nullable=False)
+    appValue = Column(String(250), nullable=False)
+
+    @property
+    def serialize(self):
+       """Return object data in easily serializeable format"""
+       return {
+           'appParam'         : self.appParam,
+           'id'         : self.id,
+           'appValue'         : self.appValue
+       }        
  
 
 engine = create_engine('sqlite:///catalog.db')

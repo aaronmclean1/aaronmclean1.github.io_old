@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
  
-from catlogDbSetup import Category, Base, GearItem
+from catlogDbSetup import Category, Base, GearItem, ApplicationParameters
  
 engine = create_engine('sqlite:///catalog.db')
 # Bind the engine to the metadata of the Base class so that the
@@ -48,12 +48,16 @@ session.add(gearItem2)
 session.commit()
 
 
-user1 = FbUsers(name = "Aaron McLean", fbid = "1234")
+user1 = FbUsers(name = "Lucas McLean", facebookId = "1234")
 session.add(user1)
 session.commit()
 
-user2 = FbUsers(name = "Amy McLean", fbid = "5678")
+user2 = FbUsers(name = "Amy McLean", facebookId = "5678")
 session.add(user2)
 session.commit()
 
-print "added gear items!"
+appParam1 = ApplicationParameters(appParam = "FacebookSecretKey", appValue = "830332383679546%7C22ed25639950578f442f85ef245c1026")
+session.add(appParam1)
+session.commit()
+
+print "added database items!"

@@ -2,7 +2,8 @@ $(document)
 	.ready(function()
 	{
         // Load the SDK asynchronously
-	  (function(d, s, id){
+	  (function(d, s, id)
+	  {
 		 var js, fjs = d.getElementsByTagName(s)[0];
 		 if (d.getElementById(id)) {return;}
 		 js = d.createElement(s); js.id = id;
@@ -10,7 +11,8 @@ $(document)
 		 fjs.parentNode.insertBefore(js, fjs);
 	   }(document, 'script', 'facebook-jssdk'));
 	   
-        window.fbAsyncInit = function() {
+        window.fbAsyncInit = function() 
+        {
                 FB.init({
                 appId: '830332383679546',
                 status: true,
@@ -25,10 +27,19 @@ $(document)
 		
 
 	});
+	
+function errorMessage()
+{
+	$.modal.close();
+	$('#addACategory').hide();
+	$('#addAGearItem').hide();	
+	$('#status').html('');
+	alert('Please login if you would like to edit the application');
+	document.location.reload();
+}	
 
 function postLogin()
-{	
-
+{
 	FB.getLoginStatus(function(response)
 	{
 		if (response.status === 'connected')
@@ -38,58 +49,153 @@ function postLogin()
 			// the user's ID, a valid access token, a signed
 			// request, and the time the access token
 			// and signed request each expire
-			var uid = response.authResponse.userID;
-			var accessToken = response.authResponse.accessToken;
+			var facebookId = response.authResponse.userID;
+			var accessToken = response.authResponse.accessToken;			
 			
-			console.log(response)
+			$('#accessToken').val(accessToken);
+			$('#facebookId').val(facebookId);
 			
 			$('#addACategory').show();
 			$('#addAGearItem').show();			
 			
 			FB.api('/me', function(response)
-			{				
-				$('#status').html('Thanks for logging in, ' + response.name + '!')
-				// start here on Thurs
-				addUser(uid, response.name, accessToken);
-			});	
-			
-			
-		}
-		else if (response.status === 'not_authorized')
-		{
-			// the user is logged in to Facebook,
-			// but has not authenticated your app			
-			$('#addACategory').hide();
-			$('#addAGearItem').hide();
-			$('#status').html('');
+			{	
+				if(response.name == 'undefined')
+				{
+					$.modal.close();
+					$('#addACategory').hide();
+					$('#addAGearItem').hide();
+					$('#status').html('');
+					alert('Please login if you would like to edit the application');				
+				}
+				else
+				{
+					$('#status').html('Thanks for logging in <a href="#" onClick="viewUsers()" >' + response.name + '</a>')
+					//Add user to database
+					addUser(facebookId, response.name, accessToken);				
+				}
+			});			
 		}
 		else
 		{
 			// the user isn't logged in to Facebook.			
+			$.modal.close();
 			$('#addACategory').hide();
 			$('#addAGearItem').hide();	
-			$('#status').html('');
+			$('#status').html('');			
 		}
 	});
 }
 
-function addUser(fbid, name, accessToken)
-{
-	
+function addUser(facebookId, name, accessToken)
+{	
 	//check to see if the user is in the DB. If not, add them
 	$.ajax({
 		type: 'GET',
-		url: '/catalog/addUser/' + fbid + '/' + name + '/' + accessToken + '/',		
+		url: '/catalog/addUser/' + facebookId + '/' + name + '/' + accessToken + '/',		
 		success: function(data)
 		{
-			console.log(data)
+			if(data == 'False')
+			{
+				errorMessage();
+			}
 		},
 		error: function(data)
-		{
-			console.log('problems')
+		{			
+			errorMessage();
 		}
 	});
 }
+
+function viewUsers()
+{		
+	
+	//initialize the modal window
+	$('#basic-modal-content').modal();
+
+	//use ajax to go get our gear data based on the gearId
+	$.ajax({
+		url: '/catalog/users/JSON',
+		async: true,
+		dataType: 'json',
+		success: function(data)
+		{
+			//clear the gear div of previous data
+			$("#basic-modal-content").html('');
+			
+			//add a header and table
+			$('#basic-modal-content').append('<h3>Users</h3>');
+			$('#basic-modal-content').append('<table></table>');
+
+			//loop through gear data and list it
+			//alert(data.user.length)
+			
+			for (var i = 0; i < data.user.length; i++)
+			{			
+				var trow = $('<tr>');
+				var p = data.user[i]
+				for (var key in p)
+				{
+					
+
+					if (p.hasOwnProperty(key))
+					{
+						if (key == 'id')
+						{
+							//append to user table
+							$('<td valign="top">').append('<a href="#" onclick="deleteUsers(' + p[key] + ')">delete</a>').width('50').data("col", 2).appendTo(trow);							
+						}	
+						
+						if (key == 'name')
+						{
+							//append to user table							
+							$('<td valign="top">').append(p[key]).width('100').data("col", 2).appendTo(trow);							
+						}				
+					}
+				}
+				trow.appendTo('table');
+			}
+		},
+		error: function(data)
+		{
+			alert('Problem. No user data was found.');
+			errorMessage();
+		}
+	});
+}
+
+function deleteUsers(userId)
+{
+	
+	//Make sure the user wants to delete the user
+	if(confirm("Are you sure?"))
+	{
+		//use ajax to delete the user
+		$.ajax({
+			type: 'POST',
+			url: '/catalog/users/' + userId + '/delete/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
+			success: function(data)
+			{
+				//close modal window
+				$.modal.close();
+				
+				//log out user
+				FB.logout(function(){document.location.reload();});
+			
+			},
+			error: function(data)
+			{
+				alert('Problem! Unable to delete the user.');
+				errorMessage();
+			}			
+		});
+	}
+	else
+	{
+		return
+	}
+}
+
 
 
 function populateCategoriesDiv()
@@ -135,6 +241,7 @@ function populateCategoriesDiv()
 
 function populateGearDiv(categoryId, categoryName)
 {
+	
 	//clear the gear div of previous data
 	$("#gearDiv").html('');
 
@@ -167,7 +274,7 @@ function populateGearDiv(categoryId, categoryName)
 			}
 			
 			//add an edit and cancel button
-			$('#gearDiv').append('<input type="button" value="Edit Category" onclick="editCategory(' + categoryId + ',\'' + categoryName.replace(/'/g, "\\'") + '\')"> | <input type="button" value="Delete Category" onclick="deleteCategory(' + categoryId + ')">');
+			$('#gearDiv').append('<button type="button" Category" onclick="editCategory(' + categoryId + ',\'' + categoryName.replace(/'/g, "\\'") + '\')">Edit</button> | <button type="button" onclick="deleteCategory(' + categoryId + ')">Delete Category</button>');
 
 		},
 		error: function(data)
@@ -178,7 +285,7 @@ function populateGearDiv(categoryId, categoryName)
 }
 
 function populateGearModal(categoryId, gearId, gearItemName, categoryName)
-{
+{	
 	
 	//initialize the modal window
 	$('#basic-modal-content').modal();
@@ -218,7 +325,7 @@ function populateGearModal(categoryId, gearId, gearItemName, categoryName)
 			
 			//define save and cancel buttons
 			var trow = $('<tr>');
-			var input = $('<input type="button" value="Edit" onclick="editGearModal(' + categoryId + ',' + gearId + ',\'' + gearItemName.replace(/'/g, "\\'") + '\',\'' + categoryName.replace(/'/g, "\\'") + '\')"> | <input type="button" value="Delete" onclick="deleteGearModal(' + categoryId + ',' + gearId + ',\'' + gearItemName.replace(/'/g, "\\'") + '\',\'' + categoryName.replace(/'/g, "\\'") + '\')">').width('144');
+			var input = $('<button type="button" onclick="editGearModal(' + categoryId + ',' + gearId + ',\'' + gearItemName.replace(/'/g, "\\'") + '\',\'' + categoryName.replace(/'/g, "\\'") + '\')">Edit</button> | <button type="button" onclick="deleteGearModal(' + categoryId + ',' + gearId + ',\'' + gearItemName.replace(/'/g, "\\'") + '\',\'' + categoryName.replace(/'/g, "\\'") + '\')">Delete</button>').width('144');
 			
 			//add edit and delete buttons
 			$('<td style="padding-top: 10px">').append(' ').width('100').data("col", 1).appendTo(trow);
@@ -233,7 +340,7 @@ function populateGearModal(categoryId, gearId, gearItemName, categoryName)
 }
 
 function editGearModal(categoryId, gearId, gearItemName, categoryName)
-{
+{	
 	//initialize the modal window
 	$('#basic-modal-content').modal();
 
@@ -301,7 +408,7 @@ function editGearModal(categoryId, gearId, gearItemName, categoryName)
 
 			//define save and cancel buttons
 			var trow = $('<tr>');
-			var input = $('<input type="button" id="saveButton" value="Save" onclick="saveGearModal(' + categoryId + ',' + gearId + ',\'' + categoryName.replace(/'/g, "\\'") + '\')"> | <input type="button" value="Cancel" onclick="$.modal.close();//populateGearModal(' + categoryId + ',' + gearId + ',\'' + gearItemName.replace(/'/g, "\\'") + '\',\'' + categoryName.replace(/'/g, "\\'") + '\')">').width('144');
+			var input = $('<button type="button" id="saveButton" onclick="saveGearModal(' + categoryId + ',' + gearId + ',\'' + categoryName.replace(/'/g, "\\'") + '\')">Save</button> | <button type="button" onclick="$.modal.close();//populateGearModal(' + categoryId + ',' + gearId + ',\'' + gearItemName.replace(/'/g, "\\'") + '\',\'' + categoryName.replace(/'/g, "\\'") + '\')">Cancel</button>').width('144');
 			
 			//add save and cancel buttons
 			$('<td style="padding-top: 10px">').append(' ').width('100').data("col", 1).appendTo(trow);
@@ -319,11 +426,12 @@ function saveGearModal(categoryId, gearId, name)
 {
 	//convert the submitted form into a serialized form
 	var formData = $("form[name='myForm']").serialize();
+	
 
 	//use ajax to send the form to our python code
 	$.ajax({
 		type: 'POST',
-		url: '/catalog/' + categoryId + '/gear/' + gearId + '/edit/',
+		url: '/catalog/' + categoryId + '/gear/' + gearId + '/edit/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 		data: formData,
 		success: function(data)
 		{
@@ -344,19 +452,21 @@ function saveGearModal(categoryId, gearId, name)
 		error: function(data)
 		{
 			alert('Problem! Unable to save data.');
+			errorMessage();
 		}
 	});
 }
 
 function deleteGearModal(categoryId, gearId, gearItemName, categoryName)
 {
+
 	//ask the user if they want to delete the gear from the category
 	if(confirm("Are you sure?"))
 	{
 		//use ajax to delete the gear
 		$.ajax({
 			type: 'POST',
-			url: '/catalog/' + categoryId + '/gear/' + gearId + '/delete',
+			url: '/catalog/' + categoryId + '/gear/' + gearId + '/delete/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 			complete: function(data)
 			{
 				//refersh the gear div
@@ -368,6 +478,7 @@ function deleteGearModal(categoryId, gearId, gearItemName, categoryName)
 			error: function(data)
 			{
 				alert('Problem! Unable to delete the gear.');
+				errorMessage();
 			}			
 		});
 	}
@@ -457,7 +568,7 @@ function addNewGearModal()
 
 	//define the save and cancel buttons
 	var trow = $('<tr>');
-	var input = $('<input type="button" id="saveButton" value="Save" onclick="saveNewGearModal($(\'#selectId option:selected\').text())"> | <input type="button" value="Cancel" onclick="$.modal.close();">').width('144');
+	var input = $('<button type="button" id="saveButton" onclick="saveNewGearModal($(\'#selectId option:selected\').text())">Save</button> | <button type="button" onclick="$.modal.close();">Cancel</button>').width('144');
 
 	//append the save and cancel buttons to the table
 	$('<td style="padding-top: 10px">').append(' ').width('100').data("col", 1).appendTo(trow);
@@ -473,7 +584,7 @@ function saveNewGearModal(categoryName)
 	//use ajax to save the gear data
 	$.ajax({
 		type: 'POST',
-		url: '/catalog/' + formData[2].value + '/gear/new/',
+		url: '/catalog/' + formData[2].value + '/gear/new/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 		data: formData,
 		success: function(data)
 		{
@@ -495,6 +606,7 @@ function saveNewGearModal(categoryName)
 		error: function(data)
 		{
 			alert('Problem! Unable to save data.');
+			errorMessage();
 		}
 	});
 }
@@ -527,7 +639,7 @@ function addNewCategory()
 
 	//define the save and cancel buttons
 	var trow = $('<tr>');
-	var input = $('<input type="button" id="saveButton" value="Save" onclick="saveNewCategory()"> | <input type="button" value="Cancel" onclick="$.modal.close();">').width('144');
+	var input = $('<button type="button" id="saveButton" onclick="saveNewCategory()">Save</button> | <button type="button" onclick="$.modal.close();">Cancel</button>').width('144');
 
 	//append the save and cancel buttons to the table
 	$('<td style="padding-top: 10px">').append(' ').width('100').data("col", 1).appendTo(trow);
@@ -540,8 +652,8 @@ function saveNewCategory()
 	var formData = $("form[name='myForm']").serializeArray();
 
 	$.ajax({
-		type: 'POST',
-		url: '/catalog/new/',
+		type: 'POST',		
+		url: '/catalog/new/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 		data: formData,
 		success: function(data)
 		{
@@ -563,6 +675,7 @@ function saveNewCategory()
 		error: function(data)
 		{
 			alert('Problem! Unable to save data.');
+			errorMessage();
 		}
 	});
 }
@@ -596,7 +709,7 @@ function editCategory(categoryId, categoryName)
 
 	//define save and cancel buttons
 	var trow = $('<tr>');
-	var input = $('<input type="button" id="saveButton" value="Save" onclick="saveCategory()"> | <input type="button" value="Cancel" onclick="$.modal.close();">').width('144');
+	var input = $('<button type="button" id="saveButton" onclick="saveCategory()">Save</button> | <button type="button" onclick="$.modal.close();">Cancel</button>').width('144');
 
 	//append the save and cancel buttons to the table
 	$('<td style="padding-top: 10px">').append(' ').width('100').data("col", 1).appendTo(trow);
@@ -612,7 +725,7 @@ function saveCategory()
 	//use ajax to save our category form data
 	$.ajax({
 		type: 'POST',
-		url: '/catalog/' + formData[1].value + '/edit/',
+		url: '/catalog/' + formData[1].value + '/edit/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 		data: formData,
 		success: function(data)
 		{
@@ -637,6 +750,7 @@ function saveCategory()
 		error: function(data)
 		{
 			alert('Problem! Unable to save data.');
+			errorMessage();
 		}
 	});
 }
@@ -649,7 +763,7 @@ function deleteCategory(categoryId)
 		//use ajax to delete the category
 		$.ajax({
 			type: 'POST',
-			url: '/catalog/' + categoryId + '/delete/',
+			url: '/catalog/' + categoryId + '/delete/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 			complete: function(data)
 			{
 				//refresh the category div
@@ -661,6 +775,7 @@ function deleteCategory(categoryId)
 			error: function(data)
 			{
 				alert('Problem! Unable to delete the category.');
+				errorMessage();
 			}			
 		});
 	}
