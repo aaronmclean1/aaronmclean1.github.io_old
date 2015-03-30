@@ -165,8 +165,7 @@ function viewUsers()
 }
 
 function deleteUsers(userId)
-{
-	
+{	
 	//Make sure the user wants to delete the user
 	if(confirm("Are you sure?"))
 	{
@@ -175,13 +174,13 @@ function deleteUsers(userId)
 			type: 'POST',
 			url: '/catalog/users/' + userId + '/delete/' + $('#facebookId').val() + '/' + $('#accessToken').val() + '/',
 			success: function(data)
-			{
+			{				
 				//close modal window
 				$.modal.close();
-				
-				//log out user
-				FB.logout(function(){document.location.reload();});
-			
+				if(data == 'logout')
+				{
+					FB.logout(function(response) {document.location.reload()});
+				}			
 			},
 			error: function(data)
 			{
