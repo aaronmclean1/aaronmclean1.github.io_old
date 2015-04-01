@@ -1,0 +1,1 @@
+This is a college project for Udacity. I only read your email address, Facebook ID and confirm that you are logged in or out. I don't read any other info or share it.
